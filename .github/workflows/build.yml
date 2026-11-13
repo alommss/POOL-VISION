@@ -5,13 +5,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip PoolVisionOverlayAI.zip
+      - name: Siapkan proyek
+        run: |
+          ls -la
+          if [ -z "$(find . -name settings.gradle.kts -not -path './.git/*' | head -n 1)" ]; then
+            Z=$(find . -iname '*.zip' -not -path './.git/*' | head -n 1)
+            echo "zip ditemukan: $Z"
+            unzip -o "$Z"
+          fi
+          D=$(dirname "$(find . -name settings.gradle.kts -not -path './.git/*' | head -n 1)")
+          echo "PROJ=$D" >> $GITHUB_ENV
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: 8.7 }
-      - run: cd PoolVisionOverlayAI && gradle assembleDebug
+      - run: cd "$PROJ" && gradle assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: PoolVision-APK
-          path: PoolVisionOverlayAI/app/build/outputs/apk/debug/*.apk
+          path: "**/build/outputs/apk/debug/*.apk"
